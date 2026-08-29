@@ -20,6 +20,10 @@
           </div>
         </div>
         <div class="actions">
+          <div class="live-badge">
+            <span id="liveIndicator" class="live-dot"></span>
+            <span class="live-text">Live Updates</span>
+          </div>
           <a class="secondary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Open profile</a>
           <a class="primary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Follow on X</a>
         </div>
@@ -27,6 +31,14 @@
 
       <main>
         <section id="stats" class="stats-grid" aria-label="Summary statistics"></section>
+
+        <section class="price-charts-panel panel">
+          <div class="panel-header">
+            <h2>Live Price Charts</h2>
+            <span class="source-note">Real-time tracking</span>
+          </div>
+          <div id="priceCharts" class="price-charts-grid" aria-live="polite"></div>
+        </section>
 
         <section class="panel-grid">
           <article class="panel">
@@ -67,6 +79,7 @@
                   <th>Sector</th>
                   <th>Mentions</th>
                   <th>Signal</th>
+                  <th>Current Price</th>
                   <th>Why it matters</th>
                 </tr>
               </thead>

@@ -85,6 +85,55 @@ h2 {
   font-size: 1.08rem;
 }
 
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(65, 211, 255, 0.12);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #41d3ff;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #41d3ff;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.live-dot.pulse {
+  animation: live-dot-pulse 0.3s ease-out;
+}
+
+@keyframes live-dot-pulse {
+  0% {
+    box-shadow: 0 0 0 0 #41d3ff;
+  }
+  100% {
+    box-shadow: 0 0 0 6px rgba(65, 211, 255, 0);
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.live-text {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -395,3 +444,146 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.stock-row {
+  transition: background-color 0.2s ease;
+}
+
+.stock-row:hover {
+  background-color: rgba(65, 211, 255, 0.08);
+}
+
+.price-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.price-value {
+  color: #41d3ff;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+}
+
+.price-change {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.price-change.positive {
+  background-color: rgba(73, 215, 154, 0.2);
+  color: #49d79a;
+}
+
+.price-change.negative {
+  background-color: rgba(255, 123, 114, 0.2);
+  color: #ff7b72;
+}
+
+.price-unavailable {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.price-charts-panel {
+  margin-bottom: 22px;
+}
+
+.price-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.stock-chart-card {
+  background: rgba(148, 163, 184, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all 0.2s ease;
+}
+
+.stock-chart-card:hover {
+  background: rgba(65, 211, 255, 0.08);
+  border-color: rgba(65, 211, 255, 0.3);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.chart-ticker {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #41d3ff;
+  letter-spacing: 0.05em;
+}
+
+.chart-company {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.chart-price-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-direction: column;
+  text-align: right;
+}
+
+.chart-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #41d3ff;
+  font-family: 'Courier New', monospace;
+}
+
+.chart-change {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.chart-change.positive {
+  background: rgba(73, 215, 154, 0.2);
+  color: #49d79a;
+}
+
+.chart-change.negative {
+  background: rgba(255, 123, 114, 0.2);
+  color: #ff7b72;
+}
+
+.mini-chart {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.chart-footer {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  padding-top: 4px;
+  border-top: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.chart-stat {
+  display: inline-block;
+}
+
