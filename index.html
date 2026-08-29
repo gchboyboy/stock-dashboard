@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Serenity Stock Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="account-header">
+          <div class="avatar" aria-hidden="true">S</div>
+          <div>
+            <p class="eyebrow">Public X watchlist</p>
+            <h1>Serenity @aleabitoreddit</h1>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="secondary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Open profile</a>
+          <a class="primary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Follow on X</a>
+        </div>
+      </header>
+
+      <main>
+        <section id="stats" class="stats-grid" aria-label="Summary statistics"></section>
+
+        <section class="panel-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Last 90 days: mentions by ticker</h2>
+            </div>
+            <div id="coverageChart" class="coverage-chart" aria-live="polite"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Key themes</h2>
+            </div>
+            <ul id="themeList" class="theme-list"></ul>
+          </article>
+        </section>
+
+        <section class="panel trend-panel">
+          <div class="panel-header table-header">
+            <h2>3-month trace</h2>
+            <span class="source-note">Rolling 90-day view</span>
+          </div>
+          <div id="monthlyTrend" class="monthly-trend" aria-live="polite"></div>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-header table-header">
+            <h2>Stocks mentioned in public posts</h2>
+            <span id="sourceNote" class="source-note"></span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Company</th>
+                  <th>Sector</th>
+                  <th>Mentions</th>
+                  <th>Signal</th>
+                  <th>Why it matters</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
