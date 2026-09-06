@@ -441,3 +441,164 @@ window.addEventListener('load', () => {
 window.addEventListener('beforeunload', () => {
   stopAutoRefresh();
 });
+
+// X Feed – fetch latest tweets from backend API
+// ---------------------------------------------------------------------------
+
+const API_BASE = window.location.origin;
+
+const xEls = {
+  feedList: document.getElementById("xFeedList"),
+  mentionsSummary: document.getElementById("xMentionsSummary"),
+  lastUpdated: document.getElementById("xLastUpdated"),
+  feedStatus: document.getElementById("xFeedStatus"),
+  refreshBtn: document.getElementById("refreshXFeed"),
+  trackedAccount: document.getElementById("trackedAccount"),
+};
+
+let xFeedRefreshing = false;
+
+function formatXDate(isoString) {
+  if (!isoString) return "";
+  try {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch { return isoString; }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function highlightTickers(text, tickers) {
+  let escaped = escapeHtml(text);
+  tickers.forEach((ticker) => {
+    const regex = new RegExp(`\\b(${ticker})\\b`, "gi");
+    escaped = escaped.replace(regex, '<span class="ticker-highlight">$1</span>');
+  });
+  return escaped;
+}
+
+async function fetchXFeed() {
+  try {
+    const resp = await fetch(`${API_BASE}/api/tweets`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.warn("Could not fetch X feed:", err.message);
+    return { tweets: [], error: err.message, last_updated: null };
+  }
+}
+
+async function refreshXFeedManually() {
+  if (xFeedRefreshing) return;
+  xFeedRefreshing = true;
+  if (xEls.feedStatus) {
+    xEls.feedStatus.innerHTML = '<div class="x-status-msg">🔄 Refreshing from X…</div>';
+  }
+  try {
+    const resp = await fetch(`${API_BASE}/api/refresh`, { method: "POST" });
+    const result = await resp.json();
+    if (result.ok) {
+      await renderXFeed();
+    } else if (xEls.feedStatus) {
+      xEls.feedStatus.innerHTML = `<div class="x-status-msg x-error">❌ Refresh failed: ${escapeHtml(result.error || "Unknown error")}</div>`;
+    }
+  } catch (err) {
+    if (xEls.feedStatus) {
+      xEls.feedStatus.innerHTML = `<div class="x-status-msg x-error">❌ Could not reach server: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+  xFeedRefreshing = false;
+}
+
+async function renderXFeed() {
+  const data = await fetchXFeed();
+  const tweets = data.tweets || [];
+
+  if (xEls.trackedAccount && data.tracked_account) {
+    xEls.trackedAccount.textContent = data.tracked_account;
+  }
+  if (xEls.lastUpdated && data.last_updated) {
+    xEls.lastUpdated.textContent = `Updated ${formatXDate(data.last_updated)}`;
+  }
+
+  if (data.error && tweets.length === 0) {
+    if (xEls.feedStatus) {
+      xEls.feedStatus.innerHTML = `<div class="x-status-msg x-error">⚠️ ${escapeHtml(data.error)}<br><small>The syndication endpoint may be rate-limited. Try again in a few minutes.</small></div>`;
+    }
+    if (xEls.feedList) xEls.feedList.innerHTML = "";
+    if (xEls.mentionsSummary) xEls.mentionsSummary.innerHTML = "";
+    return;
+  }
+  if (xEls.feedStatus) xEls.feedStatus.innerHTML = "";
+
+  if (xEls.feedList) {
+    if (tweets.length === 0) {
+      xEls.feedList.innerHTML = '<div class="x-status-msg">No tweets yet. Click Refresh or wait for the daily update.</div>';
+    } else {
+      xEls.feedList.innerHTML = tweets.map((t) => `
+        <div class="x-tweet-card">
+          <div class="x-tweet-header">
+            <img class="x-avatar" src="${escapeHtml(t.avatar_url || "")}" alt="" onerror="this.style.display='none'" />
+            <div class="x-tweet-meta">
+              <span class="x-display-name">${escapeHtml(t.display_name || t.username)}</span>
+              <span class="x-username">@${escapeHtml(t.username)}</span>
+            </div>
+            <span class="x-tweet-date">${formatXDate(t.date)}</span>
+          </div>
+          <div class="x-tweet-body">${highlightTickers(t.text, t.tickers || [])}</div>
+          ${t.tickers && t.tickers.length > 0
+            ? `<div class="x-tweet-tickers">${t.tickers.map((tk) => `<span class="ticker-badge">${escapeHtml(tk)}</span>`).join("")}</div>`
+            : ""}
+          <div class="x-tweet-footer">
+            <span class="x-stat">❤️ ${t.like_count || 0}</span>
+            <span class="x-stat">🔁 ${t.retweet_count || 0}</span>
+            <span class="x-stat">💬 ${t.reply_count || 0}</span>
+            <a class="x-tweet-link" href="${escapeHtml(t.url)}" target="_blank" rel="noopener">View on X ↗</a>
+          </div>
+        </div>`).join("");
+    }
+  }
+
+  // Mentions summary
+  if (xEls.mentionsSummary) {
+    const tickerCounts = {};
+    tweets.forEach((t) => {
+      (t.tickers || []).forEach((tk) => { tickerCounts[tk] = (tickerCounts[tk] || 0) + 1; });
+    });
+    const sorted = Object.entries(tickerCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    if (sorted.length === 0) {
+      xEls.mentionsSummary.innerHTML = '<div class="x-status-msg">No stock mentions detected in recent tweets.</div>';
+    } else {
+      const maxCount = sorted[0][1];
+      xEls.mentionsSummary.innerHTML = sorted.map(([ticker, count]) => `
+        <div class="mention-bar-row">
+          <span class="mention-ticker">${escapeHtml(ticker)}</span>
+          <div class="mention-bar-track">
+            <div class="mention-bar-fill" style="width: ${(count / maxCount) * 100}%"></div>
+          </div>
+          <span class="mention-count">${count}</span>
+        </div>`).join("");
+    }
+  }
+}
+
+// Load X Feed on page load
+renderXFeed();
+
+// Attach event listener for manual refresh
+if (xEls.refreshBtn) {
+  xEls.refreshBtn.addEventListener("click", refreshXFeedManually);
+}
