@@ -106,14 +106,14 @@ def static_files(path):
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    # Run an initial fetch on startup (in background thread)
-    logger.info("Running initial tweet fetch on startup …")
-    try:
-        scheduled_fetch()
-    except Exception as exc:
-        logger.warning("Startup fetch failed (will retry at schedule time): %s", exc)
+# Run an initial fetch on startup (works both for `python3 app.py` and gunicorn)
+logger.info("Running initial tweet fetch on startup …")
+try:
+    scheduled_fetch()
+except Exception as exc:
+    logger.warning("Startup fetch failed (will retry at schedule time): %s", exc)
 
+if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     logger.info("Starting StockPulse dashboard on http://localhost:%d", port)
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
