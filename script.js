@@ -200,6 +200,34 @@ function renderWatchlist() {
     })
     .filter(Boolean)
     .join("");
+}
+
+// Aggregate historicalMentions into stockData for the table
+const stockData = (() => {
+  const map = {};
+  historicalMentions.forEach((entry) => {
+    if (!map[entry.ticker]) {
+      map[entry.ticker] = {
+        ticker: entry.ticker,
+        company: entry.company,
+        sector: entry.sector,
+        mentions: 0,
+        signal: entry.signal,
+        why: entry.why,
+      };
+    }
+    map[entry.ticker].mentions += 1;
+    // Keep strongest signal
+    const rank = { Strong: 3, Medium: 2, Light: 1 };
+    if ((rank[entry.signal] || 0) > (rank[map[entry.ticker].signal] || 0)) {
+      map[entry.ticker].signal = entry.signal;
+      map[entry.ticker].why = entry.why;
+    }
+  });
+  return Object.values(map).sort((a, b) => b.mentions - a.mentions);
+})();
+
+const accountInfo = { source: "@aleabitoreddit" };
 
 // Format currency
 function formatCurrency(value) {
