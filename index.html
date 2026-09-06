@@ -3,75 +3,123 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Serenity Stock Dashboard</title>
+    <title>StockPulse Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div class="account-header">
-          <div class="avatar" aria-hidden="true">S</div>
-          <div>
-            <p class="eyebrow">Public X watchlist</p>
-            <h1>Serenity @aleabitoreddit</h1>
-          </div>
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span>StockPulse</span>
         </div>
-        <div class="actions">
-          <a class="secondary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Open profile</a>
-          <a class="primary-btn" href="https://x.com/aleabitoreddit" target="_blank" rel="noreferrer">Follow on X</a>
+
+        <div class="topbar-actions">
+          <div class="status-badge">
+            <span id="statusIndicator" class="status-dot"></span>
+            <span class="status-text">Live Updates</span>
+          </div>
+          
+          <div class="search-wrap">
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Search symbol or company"
+              aria-label="Search stock"
+            />
+            <button id="addWatchlistBtn" class="primary-btn">Add</button>
+          </div>
+
+          <button id="themeToggle" class="ghost-btn" aria-label="Toggle dark mode">
+            Dark mode
+          </button>
         </div>
       </header>
 
-      <main>
-        <section id="stats" class="stats-grid" aria-label="Summary statistics"></section>
-
-        <section class="panel-grid">
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Last 90 days: mentions by ticker</h2>
-            </div>
-            <div id="coverageChart" class="coverage-chart" aria-live="polite"></div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Key themes</h2>
-            </div>
-            <ul id="themeList" class="theme-list"></ul>
-          </article>
-        </section>
-
-        <section class="panel trend-panel">
-          <div class="panel-header table-header">
-            <h2>3-month trace</h2>
-            <span class="source-note">Rolling 90-day view</span>
-          </div>
-          <div id="monthlyTrend" class="monthly-trend" aria-live="polite"></div>
-        </section>
-
-        <section class="panel table-panel">
-          <div class="panel-header table-header">
-            <h2>Stocks mentioned in public posts</h2>
-            <span id="sourceNote" class="source-note"></span>
+      <main class="dashboard">
+        <section class="hero panel">
+          <div class="hero-copy">
+            <p class="eyebrow">Market overview</p>
+            <h1 id="marketHeadline">S&P 500</h1>
           </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Ticker</th>
-                  <th>Company</th>
-                  <th>Sector</th>
-                  <th>Mentions</th>
-                  <th>Signal</th>
-                  <th>Why it matters</th>
-                </tr>
-              </thead>
-              <tbody id="stockTableBody"></tbody>
-            </table>
+          <div id="marketSummary" class="summary-grid"></div>
+        </section>
+
+        <section class="content-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Selected stock</p>
+                <h2 id="chartTitle">AAPL</h2>
+              </div>
+
+              <div class="price-meta">
+                <span id="selectedPrice">$0.00</span>
+                <span id="selectedChange" class="change-pill">0.00%</span>
+              </div>
+            </div>
+
+            <canvas id="priceChart" width="760" height="260"></canvas>
+          </div>
+
+          <aside class="panel watchlist-panel">
+            <div class="panel-header">
+              <h2>Watchlist</h2>
+              <button id="refreshWatchlist" class="small-btn">Refresh</button>
+            </div>
+            <ul id="watchlist" class="watchlist"></ul>
+          </aside>
+
+          <div class="panel table-panel">
+            <div class="panel-header">
+              <h2>Market movers</h2>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>Change</th>
+                    <th>Volume</th>
+                  </tr>
+                </thead>
+                <tbody id="stocksTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- X Feed Section -->
+        <section class="x-feed-section">
+          <div class="panel x-feed-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">X Feed</p>
+                <h2>@<span id="trackedAccount">aleabitoreddit</span></h2>
+              </div>
+              <div class="x-feed-actions">
+                <span id="xLastUpdated" class="x-last-updated"></span>
+                <button id="refreshXFeed" class="small-btn">Refresh</button>
+              </div>
+            </div>
+            <div id="xFeedStatus" class="x-feed-status"></div>
+            <div id="xFeedList" class="x-feed-list"></div>
+          </div>
+
+          <div class="panel x-mentions-panel">
+            <div class="panel-header">
+              <h2>Stock Mentions</h2>
+            </div>
+            <div id="xMentionsSummary" class="x-mentions-summary"></div>
           </div>
         </section>
       </main>
