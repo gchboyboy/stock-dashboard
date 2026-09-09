@@ -9,15 +9,6 @@ const STOCKS = [
   { symbol: "AMD", name: "AMD", price: 168.86, change: 1.97, volume: "43.1M", lastPrice: 168.86 }
 ];
 
-const state = {
-  selectedSymbol: "AAPL",
-  watchlist: ["AAPL", "MSFT", "NVDA"],
-  theme: "dark",
-  autoRefreshInterval: null,
-  isUpdating: false
-};
-
-// Real-time stock price database with real market prices
 const stockPrices = {
   'NVDA': { price: 217.55, lastPrice: 217.55, change: 1.24, history: [217.55] },
   'SKHY': { price: 82.40, lastPrice: 82.40, change: 0.89, history: [82.40] },
@@ -28,12 +19,15 @@ const stockPrices = {
   'POET': { price: 15.32, lastPrice: 15.32, change: 2.41, history: [15.32] },
 };
 
-// State for auto-refresh
-const appState = {
+const state = {
+  selectedSymbol: "AAPL",
+  watchlist: ["AAPL", "MSFT", "NVDA"],
+  theme: "dark",
   autoRefreshInterval: null,
   isUpdating: false,
   maxHistoryLength: 48
 };
+const appState = state; // alias — merged duplicate state
 
 const historicalMentions = [
   { date: '2026-06-18', ticker: 'NVDA', company: 'NVIDIA', sector: 'AI chips / supply chain', signal: 'Strong', theme: 'Memory-led AI infrastructure buildout', why: 'The account tied NVIDIA supply commitments to storage demand and flagged a sharp increase in procurement spending.' },
@@ -96,10 +90,9 @@ function getStockData(symbol) {
 
 // Real-time price update simulation
 function generateRealisticPriceUpdate(stock, volatilityFactor = 0.5) {
-  const variation = (Math.random() - 0.5) * stock.price * (volatilityFactor / 100);
+  const variation = randomDelta(stock.price, volatilityFactor);
   const newPrice = Math.max(stock.price * 0.8, stock.price + variation);
-  const priceDiff = newPrice - stock.lastPrice;
-  const changePercent = (priceDiff / stock.lastPrice) * 100;
+  const changePercent = ((newPrice - stock.lastPrice) / stock.lastPrice) * 100;
   
   return {
     price: Number(newPrice.toFixed(2)),
@@ -229,6 +222,19 @@ const stockData = (() => {
 
 const accountInfo = { source: "@aleabitoreddit" };
 
+function calculateStockData(tweets) {
+  const map = {};
+  tweets.forEach((t) => {
+    (t.tickers || []).forEach((ticker) => {
+      if (!map[ticker]) map[ticker] = { ticker, company: "Unknown Company", sector: "Unknown Sector", mentions: 0, signal: "Light", why: t.text };
+      map[ticker].mentions += 1;
+      if (map[ticker].mentions > 5) map[ticker].signal = "Strong";
+      else if (map[ticker].mentions > 2) map[ticker].signal = "Medium";
+    });
+  });
+  return Object.values(map).sort((a, b) => b.mentions - a.mentions);
+}
+
 // Format currency
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-US', {
@@ -249,16 +255,17 @@ function getPriceData(ticker) {
   return stockPrices[ticker] || null;
 }
 
-// Generate realistic price update
-function generateRealisticPriceUpdate(ticker) {
+function randomDelta(price, volatilityFactor) { return (Math.random() - 0.5) * price * (volatilityFactor / 100); }
+
+// Ticker-based price updater (renamed — was duplicate name)
+function generateRealisticPriceUpdateForTicker(ticker) {
   const data = stockPrices[ticker];
   if (!data) return null;
   
   const volatility = ticker === 'SIVE' ? 0.8 : 0.4; // SIVE is more volatile
-  const variation = (Math.random() - 0.5) * data.price * (volatility / 100);
+  const variation = randomDelta(data.price, volatility);
   const newPrice = Math.max(data.price * 0.8, data.price + variation);
-  const priceDiff = newPrice - data.lastPrice;
-  const changePercent = (priceDiff / data.lastPrice) * 100;
+  const changePercent = ((newPrice - data.lastPrice) / data.lastPrice) * 100;
   
   return {
     price: Number(newPrice.toFixed(2)),
@@ -272,7 +279,7 @@ function updateAllPrices() {
   appState.isUpdating = true;
   
   for (const ticker in stockPrices) {
-    const update = generateRealisticPriceUpdate(ticker);
+    const update = generateRealisticPriceUpdateForTicker(ticker);
     if (update) {
       stockPrices[ticker].lastPrice = stockPrices[ticker].price;
       stockPrices[ticker].price = update.price;
@@ -287,15 +294,17 @@ function updateAllPrices() {
   }
   
   appState.isUpdating = false;
-  renderStockTable();
-  renderPriceCharts();
+  try { renderStockTable(); } catch(e) { console.warn(e); }
+  try { renderPriceCharts(); } catch(e) { console.warn(e); }
   showLiveIndicator();
 }
 
 // Render stock table with prices
-function renderStockTable() {
+function renderStockTable(data) {
+  const _data = data || stockData;
   const stockTableBody = document.getElementById('stockTableBody');
-  stockTableBody.innerHTML = stockData
+  if (!stockTableBody) return;
+  stockTableBody.innerHTML = _data
     .slice()
     .map((stock) => {
       const signalClass = stock.signal === 'Strong' ? 'strong' : stock.signal === 'Medium' ? 'medium' : 'light';
@@ -599,6 +608,11 @@ async function renderXFeed() {
         </div>`).join("");
     }
   }
+
+  // X feed drives table — if tweets empty, fall back to historical stockData
+  const xStockData = (tweets.length ? calculateStockData(tweets) : (typeof stockData !== 'undefined' ? stockData : []));
+  try { renderStockTable(xStockData); } catch(e) { console.warn(e); }
+  try { renderPriceCharts(xStockData); } catch(e) { console.warn(e); }
 
   // Mentions summary
   if (xEls.mentionsSummary) {

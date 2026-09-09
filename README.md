@@ -1,164 +1,89 @@
 # Serenity Stock Dashboard
 
-A real-time stock price tracking dashboard monitoring the stocks mentioned in [@aleabitoreddit](https://x.com/aleabitoreddit)'s public X posts about AI and semiconductor supply chains.
+A real-time stock tracking dashboard that monitors AI and semiconductor supply chain stocks mentioned by [@aleabitoreddit](https://x.com/aleabitoreddit) on X.
+
+The project combines a Python backend for automated data scraping with a modern interactive frontend for visualization.
+
+## 🏗️ Architecture
+
+- **Backend**: Flask server handling API requests and scheduling.
+- **Scraper**: A multi-strategy X scraper that fetches and filters tweets for specific stock tickers.
+- **Frontend**: HTML5, CSS3, and Vanilla JavaScript using the Canvas API for real-time price charts.
+- **Data**: Stored locally in `data/tweets.json`.
 
 ## 🚀 Quick Start
 
-### Open the Dashboard
-
-#### Option 1: Direct File Opening
-Open this URL in your browser:
+### 1. Setup Environment
+Create a `.env` file in the root directory:
+```env
+X_API_KEY=your_api_key
+X_API_SECRET=your_api_secret
+X_ACCESS_TOKEN=your_access_token
+X_ACCESS_SECRET=your_access_secret
+X_BEARER_TOKEN=your_bearer_token
+TRACKED_ACCOUNT=aleabitoreddit
+SCHEDULE_HOUR=9
+SCHEDULE_MINUTE=0
+MAX_TWEETS=50
 ```
-file:///Users/ganch/Desktop/stock-dashboard-repo/index.html
-```
+*(Note: The scraper can work without API keys using the syndication strategy, but Official API keys are recommended for reliability.)*
 
-Or simply double-click `index.html` in Finder.
-
-#### Option 2: Using a Local Server (Recommended)
-
-**Python 3:**
+### 2. Install Dependencies
 ```bash
-cd /Users/ganch/Desktop/stock-dashboard-repo
-python3 -m http.server 8000
+pip install -r requirements.txt
 ```
-Then open: http://localhost:8000
 
-**Python 2:**
+### 3. Run the Application
 ```bash
-cd /Users/ganch/Desktop/stock-dashboard-repo
-python -m SimpleHTTPServer 8000
+python app.py
 ```
-Then open: http://localhost:8000
+The dashboard will be available at `http://localhost:5000`.
 
-**Node.js (if installed):**
-```bash
-cd /Users/ganch/Desktop/stock-dashboard-repo
-npx http-server
-```
-Then open: http://localhost:8080
+## 📊 Key Features
 
----
+### Live Market Dashboard
+- **Real-Time Price Tracking**: Simulated market movements with Canvas-based mini charts.
+- **Dynamic Watchlist**: Track key semiconductor and AI hardware stocks.
+- **Visual Indicators**: Pulsing live updates badge and color-coded performance.
 
-## 📊 Features
+### X-Driven Insights
+- **Automated Scraping**: Daily fetch of tweets from the tracked research account.
+- **Ticker Detection**: Automatic extraction of stock symbols from tweet text.
+- **Coverage Analysis**: Dynamic table and bar charts showing which stocks are being discussed most frequently.
+- **Signal Strength**: Analysis of mention frequency to determine investment signal strength.
 
-### Real-Time Price Tracking
-- **Live Stock Prices** - Updates every 3 seconds with realistic market movements
-- **7 Tracked Stocks** - NVDA, SKHY, SNDK, SIVE, GFS, JBL, POET
-- **Price History** - 48 data points per stock for trend visualization
-- **USD Currency Format** - All prices displayed in USD with 2 decimal places
+## 🛠️ Technical Implementation
 
-### Interactive Charts
-- **Mini Line Charts** - Real-time price visualization with gridlines
-- **Price Trends** - Area-filled charts showing 24-hour price movement
-- **Color-Coded Performance** - Green for gains (+), Red for losses (-)
-- **Live Indicator** - Pulsing "Live Updates" badge showing refresh status
+### The Scraper
+The `x_scraper.py` module implements a fallback strategy to ensure data is always available:
+1. **Syndication Endpoint**: Free, no-auth access to public timelines.
+2. **Official X API v2**: High-reliability access via Tweepy.
+3. **Guest GraphQL API**: Fallback for authenticated-like access.
+4. **Nitter Instances**: Last-resort scraping.
 
-### Dashboard Analytics
-- **Mention Tracking** - 90-day history of stock mentions from Serenity's X posts
-- **Coverage Charts** - Visual representation of mention frequency by ticker
-- **Key Themes** - AI infra optics, Memory bottlenecks, Supply-chain alpha
-- **3-Month Timeline** - Monthly breakdown of mentioned stocks
-- **Signal Strength** - Strong, Medium, or Light investment signals
-
----
-
-## 📈 Tracked Stocks
-
-| Ticker | Company | Sector | Current Price |
-|--------|---------|--------|---------------|
-| **NVDA** | NVIDIA | AI chips / supply chain | $217.55 |
-| **SKHY** | SK Hynix | Memory / DRAM | $82.40 |
-| **SNDK** | SanDisk / NAND | NAND / storage | $71.25 |
-| **SIVE** | Sivers Semiconductors | Photonics / optical interconnect | $12.48 |
-| **GFS** | GlobalFoundries | Foundry / AI packaging | $35.80 |
-| **JBL** | Jabil | Electronics manufacturing | $28.65 |
-| **POET** | POET Technologies | Photonics / silicon photonics | $15.32 |
-
----
-
-## 🎨 Technologies
-
-- **HTML5** - Semantic markup with canvas for chart rendering
-- **CSS3** - Modern styling with CSS Grid and animations
-- **JavaScript** - Real-time price updates, chart drawing, and data management
-- **Canvas API** - Custom line chart rendering with area fills
-
----
-
-## 🔄 Auto-Refresh Settings
-
-The dashboard automatically updates stock prices every **3 seconds**. To change the refresh interval, edit `script.js`:
-
-```javascript
-// Line ~390 - Find this and change the number
-startAutoRefresh(3);  // Change 3 to your desired seconds
-```
-
----
+### The Backend
+The Flask app provides:
+- `/api/tweets`: Serves the latest scraped data.
+- `/api/refresh`: Allows manual triggering of the scraper.
+- `/api/status`: System health and schedule check.
+- **APScheduler**: Ensures tweets are refreshed every morning.
 
 ## 📁 File Structure
-
 ```
-stock-dashboard-repo/
-├── index.html          # Main HTML structure
-├── script.js           # Real-time price tracking and chart rendering
-├── styles.css          # Dashboard styling and animations
-└── README.md           # This file
+stock-dashboard/
+├── app.py              # Flask backend & scheduler
+├── config.py           # Environment & ticker configuration
+├── x_scraper.py        # Multi-strategy X scraper
+├── requirements.txt    # Python dependencies
+├── data/
+│   └── tweets.json     # Scraped tweet storage
+├── index.html          # Dashboard structure
+├── script.js           # Frontend logic & chart rendering
+└── styles.css          # Dashboard styling
 ```
 
----
-
-## 🎯 Key Features Explained
-
-### Live Price Charts
-Each stock displays a mini line chart showing:
-- Current price in USD
-- Percentage change (green/red)
-- 24-hour price trends
-- Area fill beneath the line for visual emphasis
-
-### Coverage Analysis
-- Bar chart showing mention frequency across 90 days
-- Identifies most-discussed stocks by Serenity
-- Signal strength indicators (Strong/Medium/Light)
-
-### Real-Time Updates
-- Prices update simultaneously across charts and table
-- Live indicator pulses when data refreshes
-- Smooth animations and transitions
-- Responsive design adapts to all screen sizes
-
----
-
-## 🔗 Data Source
-
-Stock mention data is sourced from [@aleabitoreddit](https://x.com/aleabitoreddit)'s public X timeline, tracking AI and semiconductor supply chain research from June 18 - August 29, 2026.
-
-Price data updates in real-time with simulated market movements (actual implementation would use a real API like Alpha Vantage, Finnhub, or Polygon.io).
-
----
-
-## 🚀 Future Enhancements
-
-- [ ] Integration with real stock price APIs (Yahoo Finance, Alpha Vantage, Finnhub)
-- [ ] Portfolio value tracking and performance metrics
-- [ ] Sector-wise performance comparison
-- [ ] Custom watchlist management
-- [ ] Price alerts and notifications
-- [ ] Historical data export (CSV/JSON)
-- [ ] Dark mode toggle improvements
-- [ ] Mobile-responsive optimizations
-
----
-
-## 📝 License
-
-This project is open source. Feel free to use, modify, and distribute as needed.
-
----
-
-## 👤 About
-
-Created to track and visualize stock mentions from [@aleabitoreddit](https://x.com/aleabitoreddit)'s research on AI infrastructure and semiconductor supply chains.
-
-**Last Updated:** August 29, 2026
+## 🎯 Future Roadmap
+- [ ] Integrate real-time price APIs (Alpha Vantage / Finnhub).
+- [ ] Implement user-defined watchlists via a database.
+- [ ] Add sentiment analysis to tweets using NLP.
+- [ ] Expand ticker list to include broader AI infrastructure.
