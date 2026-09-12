@@ -5,3 +5,8 @@ __pycache__/
 .DS_Store
 outlook-google-calendar-mcp/
 CLAUDE.md
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
